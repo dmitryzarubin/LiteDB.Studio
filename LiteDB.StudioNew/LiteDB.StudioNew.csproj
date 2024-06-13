@@ -23,5 +23,21 @@
         <PackageReference Include="Avalonia.ReactiveUI" Version="11.0.10"/>
         <PackageReference Include="AvaloniaEdit.TextMate" Version="11.0.6" />
         <PackageReference Include="LiteDB" Version="5.0.20" />
+        <PackageReference Include="ReactiveUI.Validation" Version="4.0.9" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Update="Views\AddConnectionView.axaml.cs">
+        <DependentUpon>MainWindow2.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
+      <Compile Update="Views\EditConnectionView.axaml.cs">
+        <DependentUpon>EditConnectionView.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
+      <Compile Update="Views\ConnectionListView.axaml.cs">
+        <DependentUpon>ConnectionListView.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
     </ItemGroup>
 </Project>
