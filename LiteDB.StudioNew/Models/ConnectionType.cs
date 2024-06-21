@@ -1,4 +1,4 @@
-namespace LiteDB.StudioNew;
+namespace LiteDB.StudioNew.Models;
 
 public enum ConnectionType
 {

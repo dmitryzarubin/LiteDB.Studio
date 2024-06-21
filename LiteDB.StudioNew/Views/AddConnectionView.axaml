@@ -3,22 +3,89 @@
         xmlns:vm="using:LiteDB.StudioNew.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:views="clr-namespace:LiteDB.StudioNew.Views"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="LiteDB.StudioNew.Views.AddConnectionView"
         x:DataType="vm:AddConnectionViewModel"
         Icon="/Assets/avalonia-logo.ico"
-        Title="LiteDB.StudioNew">
+        Title="Add connection"
+        Height="500"
+        Width="600"
+        MinHeight="500"
+        MinWidth="600"
+        Design.Height="500"
+        Design.Width="600" 
+        
+        WindowStartupLocation="CenterScreen">
 
     <Design.DataContext>
         <!-- This only sets the DataContext for the previewer in an IDE,
              to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
-        <vm:AddConnectionViewModel/>
+        <vm:AddConnectionViewModel />
     </Design.DataContext>
 
+    <Grid RowDefinitions="40,40,40,40,*,80" ColumnDefinitions="200,*" Margin="15,5,15,5">
 
-    
+        <Label Grid.Row="0" Grid.Column="0" VerticalAlignment="Center">Connection name</Label>
+        <TextBox Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" x:Name="ConnectionNameTextBox">ddd</TextBox>
 
-    
-    
+        <Label Grid.Row="1" Grid.Column="0" VerticalAlignment="Center">Path</Label>
+        <Grid Grid.Row="1" Grid.Column="1" RowDefinitions="40" ColumnDefinitions="*, 35">
+            <TextBox Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" x:Name="PathTextBox">ddd</TextBox>
+            <Button Grid.Row="0" Grid.Column="1" Height="25" Width="25" VerticalAlignment="Center"
+                    HorizontalAlignment="Right" Click="SelectFile_OnClick" />
+        </Grid>
+
+
+        <Label Grid.Row="2" Grid.Column="0" VerticalAlignment="Center">Password</Label>
+        <TextBox Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" PasswordChar="*" x:Name="PasswordTextBox">ddd</TextBox>
+
+        <Label Grid.Row="3" Grid.Column="0" VerticalAlignment="Center">ConnectionType</Label>
+        <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Spacing="20">
+            <RadioButton Content="Direct" x:Name="DirectRadioButton" />
+            <RadioButton Content="Shared" x:Name="SharedRadioButton" />
+        </StackPanel>
+
+        <Expander Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" DockPanel.Dock="Top" IsExpanded="True"
+                  VerticalAlignment="Top" HorizontalAlignment="Stretch" Header="Parameters">
+            <Grid RowDefinitions="40,40,40,40" ColumnDefinitions="200,*">
+                <Label Grid.Row="0" Grid.Column="0" VerticalAlignment="Center">InitialSize (MB)</Label>
+                <NumericUpDown Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Left"
+                               Minimum="0" FormatString="0" Width="240" x:Name="InitialSizeNumericUpDown" />
+
+                <Label Grid.Row="1" Grid.Column="0" VerticalAlignment="Center">Collation</Label>
+                <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="2"
+                            HorizontalAlignment="Stretch">
+                    <ComboBox VerticalAlignment="Center" Width="150" x:Name="CultureComboBox">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="x:String">
+                                <TextBlock Text="{Binding .}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <Label VerticalAlignment="Center" Width="15">/</Label>
+                    <ComboBox VerticalAlignment="Center" Width="150" x:Name="SortComboBox">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="x:String">
+                                <TextBlock Text="{Binding .}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </StackPanel>
+
+                <CheckBox Grid.Row="2" Grid.Column="0" x:Name="ReadOnlyCheckBox">ReadOnly</CheckBox>
+                <CheckBox Grid.Row="3" Grid.Column="0" x:Name="UpgradeCheckBox">Upgrade</CheckBox>
+            </Grid>
+        </Expander>
+
+        <StackPanel Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" DockPanel.Dock="Bottom" Orientation="Horizontal"
+                    HorizontalAlignment="Right" Height="40">
+            <Button HorizontalAlignment="Right" Height="30" Width="120" HorizontalContentAlignment="Center"
+                    Content="Add" x:Name="AddButton" />
+            <Button HorizontalAlignment="Right" Height="30" Width="120" HorizontalContentAlignment="Center"
+                    Content="Close" x:Name="CloseButton" />
+        </StackPanel>
+
+    </Grid>
+
+
 </Window>

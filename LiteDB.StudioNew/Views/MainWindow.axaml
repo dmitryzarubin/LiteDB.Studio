@@ -16,12 +16,29 @@
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
-    <StackPanel VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-        <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Top"/>
-        <Button></Button>
-    </StackPanel>
     
+    <DockPanel VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+        <StackPanel Orientation="Horizontal" Height="30" DockPanel.Dock="Top" Margin="10" Spacing="5">
+            <Button Height="40" Width="40" x:Name="AddButton" />
+            <Button Height="40" Width="40" x:Name="EditButton" />
+            <Button Height="40" Width="40" x:Name="RemoveButton" />
+        </StackPanel>
+        
+        <SplitView IsPaneOpen="True"
+                   DisplayMode="Inline"
+                   OpenPaneLength="300">
+            <SplitView.Pane>
+                <TreeView />
+            </SplitView.Pane>
 
+            <TabControl>
+                <TabControl.Items>
+                    <TabItem Header="dddd"></TabItem>
+                    <TabItem Header="ffff"></TabItem>
+                </TabControl.Items>
+            </TabControl>
+        </SplitView>
+    </DockPanel>
     
     
 </Window>

@@ -1,5 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using DynamicData;
@@ -14,6 +16,7 @@ public class ConnectionListViewModel : ViewModelBase, IActivatableViewModel
     private readonly IConnectionRepository _connectionRepository;
     private readonly INavigationService _navigationService;
     private ReadOnlyObservableCollection<Connection> _connections = ReadOnlyObservableCollection<Connection>.Empty;
+    private Connection? _selectedConnection;
 
     public ConnectionListViewModel(IConnectionRepository connectionRepository, INavigationService navigationService)
     {
@@ -28,22 +31,57 @@ public class ConnectionListViewModel : ViewModelBase, IActivatableViewModel
                 .Subscribe()
                 .DisposeWith(disposable);
         });
+
+        var canEditConnection = this.WhenAnyValue(x => x.SelectedConnection)
+            .Select(c => c != null);
+
+        AddConnectionCommand = ReactiveCommand.Create(AddConnection);
+        AddConnectionCommand.ThrownExceptions.Subscribe(ex =>
+        {
+            Error.Handle(ex.Message);
+            Debug.WriteLine($"{DateTime.Now:s} - {ex}");
+        });
+
+        EditConnectionCommand = ReactiveCommand.Create(EditConnection, canEditConnection);
+        EditConnectionCommand.ThrownExceptions.Subscribe(ex =>
+        {
+            Error.Handle(ex.Message);
+            Debug.WriteLine($"{DateTime.Now:s} - {ex}");
+        });
+
+        RemoveConnectionCommand = ReactiveCommand.Create(RemoveConnection, canEditConnection);
+        RemoveConnectionCommand.ThrownExceptions.Subscribe(ex =>
+        {
+            Error.Handle(ex.Message);
+            Debug.WriteLine($"{DateTime.Now:s} - {ex}");
+        });
     }
 
 
     public ReadOnlyObservableCollection<Connection> Connections => _connections;
 
-    public Connection? SelectedConnection { get; set; }
+    public Connection? SelectedConnection
+    {
+        get => _selectedConnection;
+        set => this.RaiseAndSetIfChanged(ref _selectedConnection, value);
+    }
+
+    public Interaction<string, Unit> Error { get; } = new();
+    public Interaction<Unit, bool> ConfirmDeletion { get; } = new();
+
+
+    public ReactiveCommand<Unit, Unit> AddConnectionCommand { get; }
+    public ReactiveCommand<Unit, Unit> EditConnectionCommand { get; }
+    public ReactiveCommand<Unit, Unit> RemoveConnectionCommand { get; }
 
     public ViewModelActivator Activator { get; } = new();
 
-
-    public void AddConnection()
+    private void AddConnection()
     {
         _navigationService.NavigateToAddConnectionViewModel();
     }
 
-    public void EditConnection()
+    private void EditConnection()
     {
         if (SelectedConnection == null)
             return;
@@ -51,17 +89,19 @@ public class ConnectionListViewModel : ViewModelBase, IActivatableViewModel
         _navigationService.NavigateToEditConnectionViewModel(SelectedConnection.Guid);
     }
 
-    public void RemoveConnection()
+    private void RemoveConnection()
     {
         if (SelectedConnection == null)
             return;
 
-        // Confirm
-
-        _connectionRepository.RemoveAsync(SelectedConnection.Guid);
+        ConfirmDeletion.Handle(Unit.Default).Subscribe(confirmed =>
+        {
+            if (confirmed)
+                _connectionRepository.RemoveAsync(SelectedConnection.Guid);
+        });
     }
 
-    public void SelectConnection()
+    private void SelectConnection()
     {
     }
 }

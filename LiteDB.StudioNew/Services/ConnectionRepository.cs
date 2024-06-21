@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using DynamicData;
@@ -18,15 +20,16 @@ public class ConnectionRepository : IConnectionRepository
     {
         _path = !string.IsNullOrEmpty(path) ? path : throw new ArgumentException("Connection file path is empty");
 
+        ConnectionsObservable =  _sourceCache.Connect();
+        
         GetAllAsync().ContinueWith(task =>
         {
             var connections = task.Result;
-            _sourceCache.Refresh(connections);
+            _sourceCache.AddOrUpdate(connections);
         });
     }
 
-    public IObservable<IChangeSet<Connection, Guid>> ConnectionsObservable => _sourceCache.Connect().Publish();
-
+    public IObservable<IChangeSet<Connection, Guid>> ConnectionsObservable { get; }
 
     public Connection? Get(Guid connectionGuid)
     {

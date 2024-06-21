@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using LiteDB.StudioNew.Services;
 using ReactiveUI;
 using ReactiveUI.Validation.Extensions;
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
 namespace LiteDB.StudioNew.ViewModels;
 
@@ -16,7 +17,8 @@ public class EditConnectionViewModel : ViewModelBase, IActivatableViewModel
 {
     private readonly Guid _connectionGuid;
     private readonly IConnectionRepository _connectionRepository;
-    private ConnectionType _connectionType = ConnectionType.Direct;
+    private readonly INavigationService _navigationService;
+    private Models.ConnectionType _connectionType = Models.ConnectionType.Direct;
     private string? _culture;
     private int _initialSize;
     private string? _name;
@@ -26,11 +28,17 @@ public class EditConnectionViewModel : ViewModelBase, IActivatableViewModel
     private string? _sort;
     private bool _upgrade;
 
-    public EditConnectionViewModel(Guid connectionGuid, IConnectionRepository connectionRepository)
+    // For the XAML designer
+    public EditConnectionViewModel()
+    {
+    }
+    
+    public EditConnectionViewModel(Guid connectionGuid, IConnectionRepository connectionRepository, INavigationService navigationService)
     {
         _connectionGuid = connectionGuid;
         _connectionRepository = connectionRepository ?? throw new ArgumentNullException(nameof(connectionRepository));
-        
+        _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
+
         this.WhenActivated(disposable =>
         {
             Observable.Start(() =>
@@ -60,8 +68,8 @@ public class EditConnectionViewModel : ViewModelBase, IActivatableViewModel
         CulturesList = StaticDictionaries.CulturesList;
         SortsList = StaticDictionaries.SortsList;
 
-        this.ValidationRule(vm => vm.Name, string.IsNullOrWhiteSpace, "Name must be specified");
-        this.ValidationRule(vm => vm.Path, string.IsNullOrWhiteSpace, "Path must be specified");
+        this.ValidationRule(vm => vm.Name, s => !string.IsNullOrWhiteSpace(s), "Name must be specified");
+        this.ValidationRule(vm => vm.Path, s => !string.IsNullOrWhiteSpace(s), "Path must be specified");
 
         UpdateConnectionCommand = ReactiveCommand.CreateFromTask(UpdateConnection, ValidationContext.Valid, RxApp.TaskpoolScheduler);
         UpdateConnectionCommand.ThrownExceptions.Subscribe(ex =>
@@ -69,6 +77,8 @@ public class EditConnectionViewModel : ViewModelBase, IActivatableViewModel
             Error.Handle(ex.Message);
             Debug.WriteLine($"{DateTime.Now:s} - {ex}");
         });
+        
+        CloseCommand = ReactiveCommand.Create(Close, outputScheduler: RxApp.TaskpoolScheduler);
     }
 
     public string? Name
@@ -89,7 +99,7 @@ public class EditConnectionViewModel : ViewModelBase, IActivatableViewModel
         set => this.RaiseAndSetIfChanged(ref _password, value);
     }
 
-    public ConnectionType ConnectionType
+    public Models.ConnectionType ConnectionType
     {
         get => _connectionType;
         set => this.RaiseAndSetIfChanged(ref _connectionType, value);
@@ -140,7 +150,7 @@ public class EditConnectionViewModel : ViewModelBase, IActivatableViewModel
     public Interaction<string, Unit> Error { get; } = new();
     
     public ReactiveCommand<Unit, Unit> UpdateConnectionCommand { get; set; }
-
+    public ReactiveCommand<Unit, Unit> CloseCommand { get; }
 
     public ViewModelActivator Activator { get; } = new();
 
@@ -151,7 +161,7 @@ public class EditConnectionViewModel : ViewModelBase, IActivatableViewModel
             throw new InvalidOperationException();
 
         connection.Name = Name ?? throw new ArgumentNullException(nameof(Name));
-        connection.Password = Password ?? throw new ArgumentNullException(nameof(Password));
+        connection.Password = Password;
         connection.Path = Path ?? throw new ArgumentNullException(nameof(Path));
         connection.ConnectionType = ConnectionType;
 
@@ -163,5 +173,11 @@ public class EditConnectionViewModel : ViewModelBase, IActivatableViewModel
         connection.Sort = Sort;
 
         await _connectionRepository.UpdateAsync(connection);
+        _navigationService.Close();
+    }
+    
+    private void Close()
+    {
+        _navigationService.Close();
     }
 }

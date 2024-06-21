@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -9,7 +11,10 @@ namespace LiteDB.StudioNew.Services;
 
 public class NavigationService : INavigationService
 {
-    public void NavigateToConnectionsListViewModel()
+    private readonly Stack<(object viewMode, Window view, TaskCompletionSource<object> windowClosed)> _stack = new();
+
+
+    public Task<object> NavigateToConnectionsListViewModel()
     {
         var vm = new ConnectionListViewModel(Container.ConnectionRepository, this);
         var view = new ConnectionListView
@@ -17,34 +22,64 @@ public class NavigationService : INavigationService
             DataContext = vm
         };
 
-        view.ShowDialog(GetMainWidow());
+        var parentWindow = _stack.TryPeek(out var tuple) ? tuple.view : GetMainWidow();
+        var windowClosed = new TaskCompletionSource<object>();
+        _stack.Push((vm, view, windowClosed));
+        view.Closed += ViewOnClosed;
+
+        view.ShowDialog(parentWindow);
+        return windowClosed.Task;
     }
 
     public void NavigateToAddConnectionViewModel()
     {
-        var vm = new AddConnectionViewModel(Container.ConnectionRepository);
+        var vm = new AddConnectionViewModel(Container.ConnectionRepository, Container.NavigationService);
         var view = new AddConnectionView
         {
             DataContext = vm
         };
 
-        view.ShowDialog(GetMainWidow());
+        var parentWindow = _stack.TryPeek(out var tuple) ? tuple.view : GetMainWidow();
+        _stack.Push((vm, view, new TaskCompletionSource<object>()));
+        view.Closed += ViewOnClosed;
+        
+        view.ShowDialog(parentWindow);
     }
 
     public void NavigateToEditConnectionViewModel(Guid connectionGuid)
     {
-        var vm = new EditConnectionViewModel(connectionGuid, Container.ConnectionRepository);
+        var vm = new EditConnectionViewModel(connectionGuid, Container.ConnectionRepository, Container.NavigationService);
         var view = new EditConnectionView
         {
             DataContext = vm
         };
 
-        view.ShowDialog(GetMainWidow());
+        var parentWindow = _stack.TryPeek(out var tuple) ? tuple.view : GetMainWidow();
+        _stack.Push((vm, view, new TaskCompletionSource<object>()));
+        view.Closed += ViewOnClosed;
+        
+        view.ShowDialog(parentWindow);
+    }
+
+    public void Close()
+    {
+        var (viewMode, view, windowClosed) = _stack.Pop();
+        windowClosed.TrySetResult(viewMode);
+        view.Closed -= ViewOnClosed;
+        
+        view.Close();
+    }
+
+    private void ViewOnClosed(object? sender, EventArgs e)
+    {
+        var (viewMode, view, windowClosed) = _stack.Pop();
+        windowClosed.TrySetResult(viewMode);
+        view.Closed -= ViewOnClosed;
     }
 
     private static Window GetMainWidow()
     {
-        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop) 
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             return desktop.MainWindow;
 
         throw new InvalidOperationException();

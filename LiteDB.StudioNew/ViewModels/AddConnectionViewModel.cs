@@ -2,18 +2,22 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reactive;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using LiteDB.StudioNew.Models;
 using LiteDB.StudioNew.Services;
 using ReactiveUI;
 using ReactiveUI.Validation.Extensions;
 
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+
 namespace LiteDB.StudioNew.ViewModels;
 
 public class AddConnectionViewModel : ViewModelBase
 {
     private readonly IConnectionRepository _connectionRepository;
-    private ConnectionType _connectionType = ConnectionType.Direct;
+    private readonly INavigationService _navigationService;
+    private Models.ConnectionType _connectionType = Models.ConnectionType.Direct;
     private string? _culture;
     private int _initialSize;
     private string? _name;
@@ -23,24 +27,33 @@ public class AddConnectionViewModel : ViewModelBase
     private string? _sort;
     private bool _upgrade;
 
-    public AddConnectionViewModel(IConnectionRepository connectionRepository)
+    // For the XAML designer
+    public AddConnectionViewModel()
+    {
+    }
+
+    public AddConnectionViewModel(IConnectionRepository connectionRepository, INavigationService navigationService)
     {
         _connectionRepository = connectionRepository ?? throw new ArgumentNullException(nameof(connectionRepository));
+        _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
 
         CulturesList = StaticDictionaries.CulturesList;
         SortsList = StaticDictionaries.SortsList;
 
-        this.ValidationRule(vm => vm.Name, string.IsNullOrWhiteSpace, "Name must be specified");
-        this.ValidationRule(vm => vm.Path, string.IsNullOrWhiteSpace, "Path must be specified");
+        this.ValidationRule(vm => vm.Name, s => !string.IsNullOrWhiteSpace(s), "Name must be specified");
+        this.ValidationRule(vm => vm.Path, s => !string.IsNullOrWhiteSpace(s), "Path must be specified");
 
         AddConnectionCommand = ReactiveCommand.CreateFromTask(AddConnection, ValidationContext.Valid, RxApp.TaskpoolScheduler);
-        AddConnectionCommand.ThrownExceptions.Subscribe(ex =>
+        AddConnectionCommand.ThrownExceptions.ObserveOn(RxApp.MainThreadScheduler).Subscribe(ex =>
         {
-            Error.Handle(ex.Message);
+            Error.Handle(ex.Message).Subscribe();
             Debug.WriteLine($"{DateTime.Now:s} - {ex}");
         });
+
+        CloseCommand = ReactiveCommand.Create(Close, outputScheduler: RxApp.TaskpoolScheduler);
     }
-    
+
+
     public string? Name
     {
         get => _name;
@@ -59,7 +72,7 @@ public class AddConnectionViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _password, value);
     }
 
-    public ConnectionType ConnectionType
+    public Models.ConnectionType ConnectionType
     {
         get => _connectionType;
         set => this.RaiseAndSetIfChanged(ref _connectionType, value);
@@ -88,7 +101,7 @@ public class AddConnectionViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _initialSize, value);
     }
 
-    public IReadOnlyList<string> CulturesList { get; }
+    public IEnumerable<string> CulturesList { get; }
 
     public string? Culture
     {
@@ -107,14 +120,15 @@ public class AddConnectionViewModel : ViewModelBase
 
     public Interaction<string, Unit> Error { get; } = new();
     public ReactiveCommand<Unit, Unit> AddConnectionCommand { get; set; }
-    
+    public ReactiveCommand<Unit, Unit> CloseCommand { get; }
+
     private async Task AddConnection()
     {
         var connection = new Connection
         {
             Guid = Guid.NewGuid(),
             Name = Name ?? throw new ArgumentNullException(nameof(Name)),
-            Password = Password ?? throw new ArgumentNullException(nameof(Password)),
+            Password = Password,
             Path = Path ?? throw new ArgumentNullException(nameof(Path)),
             ConnectionType = ConnectionType,
 
@@ -127,5 +141,11 @@ public class AddConnectionViewModel : ViewModelBase
         };
 
         await _connectionRepository.InsertAsync(connection);
+        _navigationService.Close();
+    }
+
+    private void Close()
+    {
+        _navigationService.Close();
     }
 }
