@@ -19,10 +19,17 @@
     
     <DockPanel VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
 
-        <StackPanel Orientation="Horizontal" Height="30" DockPanel.Dock="Top" Margin="10" Spacing="5">
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Height="30" Margin="10" Spacing="5">
             <Button Height="40" Width="40" x:Name="AddButton" />
             <Button Height="40" Width="40" x:Name="EditButton" />
             <Button Height="40" Width="40" x:Name="RemoveButton" />
+        </StackPanel>
+        
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Height="40" Spacing="5" Name="SelectPanel">
+            <Button HorizontalAlignment="Right" Height="30" Width="120" HorizontalContentAlignment="Center"
+                    Content="Connect" x:Name="SelectButton" />
+            <Button HorizontalAlignment="Right" Height="30" Width="120" HorizontalContentAlignment="Center"
+                    Content="Close" x:Name="CloseButton" />
         </StackPanel>
 
         <DataGrid VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Name="ConnectionsDataGrid"
@@ -34,6 +41,8 @@
                 <DataGridTextColumn Width="150" Header="Collation" Binding="{Binding Name}" />
             </DataGrid.Columns>
         </DataGrid>
+        
+
     </DockPanel>
 
 </Window>

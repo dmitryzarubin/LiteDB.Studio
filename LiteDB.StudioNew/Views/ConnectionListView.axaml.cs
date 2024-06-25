@@ -19,10 +19,13 @@ public partial class ConnectionListView : ReactiveWindow<ConnectionListViewModel
         });
 
         this.Bind(ViewModel, vm => vm.SelectedConnection, v => v.ConnectionsDataGrid.SelectedItem);
-
+        this.Bind(ViewModel, vm => vm.IsSelectionMode, v => v.SelectPanel.IsVisible);
+        
         this.BindCommand(ViewModel, vm => vm.AddConnectionCommand, view => view.AddButton);
         this.BindCommand(ViewModel, vm => vm.EditConnectionCommand, view => view.EditButton);
         this.BindCommand(ViewModel, vm => vm.RemoveConnectionCommand, view => view.RemoveButton);
+        this.BindCommand(ViewModel, vm => vm.SelectConnectionCommand, view => view.SelectButton);
+        this.BindCommand(ViewModel, vm => vm.CloseCommand, view => view.CloseButton);
 
         this.BindInteraction(ViewModel, vm => vm.Error, async context =>
         {

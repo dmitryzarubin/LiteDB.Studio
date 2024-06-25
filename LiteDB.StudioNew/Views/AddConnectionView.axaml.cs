@@ -48,26 +48,18 @@ public partial class AddConnectionView : ReactiveWindow<AddConnectionViewModel>
         });
     }
 
-    private void SelectFile_OnClick(object? sender, RoutedEventArgs e)
+    private async void SelectFile_OnClick(object? sender, RoutedEventArgs e)
     {
-        Task.Run(async () =>
+        var topLevel = GetTopLevel(this);
+
+        // Start async operation to open the dialog.
+        var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            var topLevel = GetTopLevel(this);
-
-            // Start async operation to open the dialog.
-            var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
-            {
-                Title = "Open database",
-                AllowMultiple = false
-            });
-
-            if (files.Any() && files.SingleOrDefault() != null)
-                RxApp.MainThreadScheduler.Schedule(Unit.Default, (_, _) =>
-                {
-                    var storageFile = files.Single();
-                    PathTextBox.Text = storageFile.TryGetLocalPath();
-                    return Disposable.Empty;
-                });
+            Title = "Open database",
+            AllowMultiple = false
         });
+
+        var storageFile = files.Single();
+        PathTextBox.Text = storageFile.TryGetLocalPath();
     }
 }

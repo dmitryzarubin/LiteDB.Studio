@@ -13,13 +13,15 @@ namespace LiteDB.StudioNew.ViewModels;
 
 public class ConnectionListViewModel : ViewModelBase, IActivatableViewModel
 {
+
     private readonly IConnectionRepository _connectionRepository;
     private readonly INavigationService _navigationService;
     private ReadOnlyObservableCollection<Connection> _connections = ReadOnlyObservableCollection<Connection>.Empty;
     private Connection? _selectedConnection;
 
-    public ConnectionListViewModel(IConnectionRepository connectionRepository, INavigationService navigationService)
+    public ConnectionListViewModel(bool isSelectionMode, IConnectionRepository connectionRepository, INavigationService navigationService)
     {
+        IsSelectionMode = isSelectionMode;
         _connectionRepository = connectionRepository;
         _navigationService = navigationService;
 
@@ -55,10 +57,15 @@ public class ConnectionListViewModel : ViewModelBase, IActivatableViewModel
             Error.Handle(ex.Message);
             Debug.WriteLine($"{DateTime.Now:s} - {ex}");
         });
+        
+        SelectConnectionCommand = ReactiveCommand.Create(SelectConnection, canEditConnection);
+        CloseCommand = ReactiveCommand.Create(CloseConnection);
     }
 
-
     public ReadOnlyObservableCollection<Connection> Connections => _connections;
+
+    public bool IsSelectionMode { get; }
+    public bool IsSelected { get; private set; }
 
     public Connection? SelectedConnection
     {
@@ -73,6 +80,10 @@ public class ConnectionListViewModel : ViewModelBase, IActivatableViewModel
     public ReactiveCommand<Unit, Unit> AddConnectionCommand { get; }
     public ReactiveCommand<Unit, Unit> EditConnectionCommand { get; }
     public ReactiveCommand<Unit, Unit> RemoveConnectionCommand { get; }
+
+    public ReactiveCommand<Unit,Unit> SelectConnectionCommand { get; }
+    public ReactiveCommand<Unit,Unit> CloseCommand { get; }
+
 
     public ViewModelActivator Activator { get; } = new();
 
@@ -103,5 +114,12 @@ public class ConnectionListViewModel : ViewModelBase, IActivatableViewModel
 
     private void SelectConnection()
     {
+        IsSelected = true;
+        _navigationService.Close();
+    }
+    
+    private void CloseConnection()
+    {
+        _navigationService.Close();
     }
 }

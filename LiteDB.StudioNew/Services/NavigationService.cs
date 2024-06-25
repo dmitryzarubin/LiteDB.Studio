@@ -14,9 +14,9 @@ public class NavigationService : INavigationService
     private readonly Stack<(object viewMode, Window view, TaskCompletionSource<object> windowClosed)> _stack = new();
 
 
-    public Task<object> NavigateToConnectionsListViewModel()
+    public Task<object> NavigateToConnectionsListViewModel(bool isSelectionMode)
     {
-        var vm = new ConnectionListViewModel(Container.ConnectionRepository, this);
+        var vm = new ConnectionListViewModel(isSelectionMode, Container.ConnectionRepository, this);
         var view = new ConnectionListView
         {
             DataContext = vm

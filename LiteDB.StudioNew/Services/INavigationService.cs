@@ -5,7 +5,7 @@ namespace LiteDB.StudioNew.Services;
 
 public interface INavigationService
 {
-    Task<object> NavigateToConnectionsListViewModel();
+    Task<object> NavigateToConnectionsListViewModel(bool isSelectionMode);
     void NavigateToAddConnectionViewModel();
     void NavigateToEditConnectionViewModel(Guid connectionGuid);
     void Close();

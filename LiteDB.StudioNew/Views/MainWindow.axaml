@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:views="clr-namespace:LiteDB.StudioNew.Views"
+        xmlns:converters="clr-namespace:LiteDB.StudioNew.Converters"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="LiteDB.StudioNew.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
@@ -15,27 +16,47 @@
              to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
         <vm:MainWindowViewModel/>
     </Design.DataContext>
+    
+    <Window.Resources>
+        <converters:MenuItemConverter x:Key="MenuItemConverter"/>
+    </Window.Resources>
 
     
     <DockPanel VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
         <StackPanel Orientation="Horizontal" Height="30" DockPanel.Dock="Top" Margin="10" Spacing="5">
-            <Button Height="40" Width="40" x:Name="AddButton" />
-            <Button Height="40" Width="40" x:Name="EditButton" />
-            <Button Height="40" Width="40" x:Name="RemoveButton" />
+            <Button Height="40" Width="40" Name="ConnectButton" />
+            <Button Height="40" Width="40" Name="EditButton" />
+            <Button Height="40" Width="40" Name="RemoveButton" />
         </StackPanel>
         
         <SplitView IsPaneOpen="True"
                    DisplayMode="Inline"
                    OpenPaneLength="300">
             <SplitView.Pane>
-                <TreeView />
+                <TreeView  Name="TreeView">
+                    <TreeView.DataTemplates>
+                        <TreeDataTemplate x:DataType="vm:DataBaseItemViewModel" ItemsSource="{Binding SubNodes}">
+                            <TextBlock Text="{Binding Title}">
+                                <TextBlock.ContextMenu>
+                                    <ContextMenu IsVisible="{Binding HasContextActions}" ItemsSource="{Binding ContextActions, Converter={StaticResource MenuItemConverter}}"/>
+                                </TextBlock.ContextMenu>
+                            </TextBlock>
+                        </TreeDataTemplate>
+                    </TreeView.DataTemplates>
+                </TreeView>
             </SplitView.Pane>
 
-            <TabControl>
-                <TabControl.Items>
-                    <TabItem Header="dddd"></TabItem>
-                    <TabItem Header="ffff"></TabItem>
-                </TabControl.Items>
+            <TabControl Name="QueryTabControl">
+                <TabControl.ItemTemplate >
+                    <DataTemplate x:DataType="vm:QueryViewModel" >
+                        <TextBlock Text="{Binding Header}" />
+                    </DataTemplate>
+                </TabControl.ItemTemplate>
+                <TabControl.ContentTemplate>
+                    <DataTemplate x:DataType="vm:QueryViewModel" >
+                        <views:QueryView/>
+                    </DataTemplate>
+                </TabControl.ContentTemplate>
             </TabControl>
         </SplitView>
     </DockPanel>

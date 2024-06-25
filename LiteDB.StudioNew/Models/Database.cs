@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using LiteDB.StudioNew.Models;
 using Index = LiteDB.StudioNew.Models.Index;
 
@@ -32,7 +33,7 @@ public class Database
 
     public string ConnectionName => _connection.Name;
 
-    public IEnumerable<Collection> Collections { get; }
+    public IEnumerable<Collection> Collections { get; private set; }
 
     private static Collation? CreateCollation(Connection connection)
     {
@@ -47,10 +48,29 @@ public class Database
     public void Connect()
     {
         _liteDatabase = new LiteDatabase(_connectionString);
-        // force open database
-        Console.WriteLine(_liteDatabase.UserVersion);
+
+        Collections = GetCollections();
+    }
+    
+    public void Disconnect()
+    {
+        _liteDatabase.Dispose();
+        Collections = Array.Empty<Collection>();
     }
 
+
+    
+    public async Task<List<BsonDocument>> Execute(string query)
+    {
+        var values = await Task.Run( () =>
+        {
+            var bsonDataReader = _liteDatabase.Execute(query).ToArray();
+            var bsonValues = bsonDataReader.ToArray();
+            return bsonValues;
+        });
+
+        return values.Cast<BsonDocument>().ToList();
+    }
 
     private IEnumerable<Collection> GetCollections()
     {
@@ -62,7 +82,8 @@ public class Database
             {
                 Name = doc["name"].AsString,
                 IsSystem = true,
-                Indices = Array.Empty<Index>()
+                Indices = Array.Empty<Index>(),
+                Database = this
             });
 
         var userCollections = _liteDatabase.GetCollectionNames()
@@ -70,7 +91,8 @@ public class Database
             {
                 Name = name,
                 IsSystem = false,
-                Indices = _liteDatabase.GetCollection<Index>("$indexes").Query().Where("collection = " + name).ToArray()
+                Indices = _liteDatabase.GetCollection<Index>("$indexes").Query().Where("collection = " + name).ToArray(),
+                Database = this
             });
 
         return systemCollections.Union(userCollections).ToArray();

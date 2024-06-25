@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using LiteDB.StudioNew.Services;
 
 namespace LiteDB.StudioNew.Models;
 
@@ -9,6 +10,7 @@ public sealed class Connection : INotifyPropertyChanged
 {
     private string _name;
     private string _path;
+    
     public required Guid Guid { get; init; }
 
     public required string Name

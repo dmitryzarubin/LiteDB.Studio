@@ -1,6 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Reactive;
+using System.Linq;
 using ReactiveUI;
 
 namespace LiteDB.StudioNew.ViewModels;
@@ -8,24 +9,28 @@ namespace LiteDB.StudioNew.ViewModels;
 public class DataBaseItemViewModel : ReactiveObject
 {
     public DataBaseItemViewModel(string title, DataBaseItemsType itemsType,
-        IEnumerable<ReactiveCommand<Unit, Unit>> contextActions)
+        object relatedObject, IEnumerable<(string title, Action action)> actions)
     {
         Title = title;
-        ContextActions = contextActions;
+        ContextActions = actions.Select(x => new MenuItemViewModel(x.title, x.action)).ToArray();
         ItemsType = itemsType;
+        RelatedObject = relatedObject;
     }
 
     public DataBaseItemViewModel(string title, DataBaseItemsType itemsType,
-        IEnumerable<ReactiveCommand<Unit, Unit>> contextActions, ObservableCollection<DataBaseItemViewModel> subNodes)
+        object relatedObject, IEnumerable<(string title, Action action)> actions, ObservableCollection<DataBaseItemViewModel> subNodes)
     {
         Title = title;
         SubNodes = subNodes;
+        RelatedObject = relatedObject;
         ItemsType = itemsType;
-        ContextActions = contextActions;
+        ContextActions = actions.Select(x => new MenuItemViewModel(x.title, x.action)).ToArray();
     }
 
     public string Title { get; }
+    public object RelatedObject { get; }
     public DataBaseItemsType ItemsType { get; }
     public ObservableCollection<DataBaseItemViewModel>? SubNodes { get; }
-    public IEnumerable<ReactiveCommand<Unit, Unit>> ContextActions { get; }
+    public bool HasContextActions => ContextActions.Any();
+    public IEnumerable<MenuItemViewModel> ContextActions { get; }
 }

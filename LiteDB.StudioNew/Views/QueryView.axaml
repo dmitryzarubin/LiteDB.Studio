@@ -6,9 +6,29 @@
              x:Class="LiteDB.StudioNew.Views.QueryView"
              xmlns:AvaloniaEdit="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit">
     
-    <AvaloniaEdit:TextEditor Text="Hello AvaloniaEdit!"
-                             ShowLineNumbers="True"
-                             FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
-                             VerticalAlignment="Stretch"
-                             HorizontalAlignment="Stretch"/>
+    <Grid RowDefinitions="*, 4, *">
+        <AvaloniaEdit:TextEditor Grid.Row="0" Text="Hello AvaloniaEdit!" Name="TextEditor"
+                                 ShowLineNumbers="True"
+                                 FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
+                                 VerticalAlignment="Stretch"
+                                 HorizontalAlignment="Stretch"/>
+        
+        <GridSplitter Grid.Row="1" ResizeDirection="Rows"/>
+        
+        
+        <DockPanel Grid.Row="2">
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Height="25" Margin="3" Spacing="2">
+                <Button Height="24" Width="24" x:Name="ExecuteButton" />
+                <Button Height="24" Width="24" x:Name="EditButton" />
+                <Button Height="24" Width="24" x:Name="RemoveButton" />
+            </StackPanel>
+        
+            <TextBlock Name="TextResult"/>
+            
+        </DockPanel>
+
+        
+    </Grid>
+    
+ 
 </UserControl>

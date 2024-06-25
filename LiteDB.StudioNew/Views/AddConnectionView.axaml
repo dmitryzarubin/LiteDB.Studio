@@ -77,7 +77,7 @@
             </Grid>
         </Expander>
 
-        <StackPanel Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" DockPanel.Dock="Bottom" Orientation="Horizontal"
+        <StackPanel Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" DockPanel.Dock="Bottom" Spacing="5" Orientation="Horizontal"
                     HorizontalAlignment="Right" Height="40">
             <Button HorizontalAlignment="Right" Height="30" Width="120" HorizontalContentAlignment="Center"
                     Content="Add" x:Name="AddButton" />
